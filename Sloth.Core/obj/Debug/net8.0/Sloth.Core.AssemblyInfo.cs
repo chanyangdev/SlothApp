@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sloth.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e563694eb7677415bff9c378b36ec2201364ff3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9c50f92e3f36a44cd29a4cf1e16c0d09d5a010e6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sloth.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sloth.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
