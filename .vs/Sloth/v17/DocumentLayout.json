@@ -1,0 +1,155 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\SlothV2\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|c:\\slothv2\\sloth.core\\services\\configservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|solutionrelative:sloth.core\\services\\configservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|c:\\slothv2\\sloth.core\\models\\slothconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|solutionrelative:sloth.core\\models\\slothconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|c:\\slothv2\\sloth.core\\sloth.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|solutionrelative:sloth.core\\sloth.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|c:\\slothv2\\slothapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|solutionrelative:slothapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|c:\\slothv2\\slothapp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|solutionrelative:slothapp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|c:\\slothv2\\sloth.core\\services\\helloservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|solutionrelative:sloth.core\\services\\helloservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|c:\\slothv2\\sloth.core\\models\\customer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C457A09A-63AF-4822-8FAB-8CD83E4E9B8D}|Sloth.Core\\Sloth.Core.csproj|solutionrelative:sloth.core\\models\\customer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|c:\\slothv2\\slothapp\\slothapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{E7DA52D1-3900-4BA0-9A10-B5BADCEA62AD}|SlothApp\\SlothApp.csproj|solutionrelative:slothapp\\slothapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ConfigService.cs",
+              "DocumentMoniker": "C:\\SlothV2\\Sloth.Core\\Services\\ConfigService.cs",
+              "RelativeDocumentMoniker": "Sloth.Core\\Services\\ConfigService.cs",
+              "ToolTip": "C:\\SlothV2\\Sloth.Core\\Services\\ConfigService.cs",
+              "RelativeToolTip": "Sloth.Core\\Services\\ConfigService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T06:01:17.306Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SlothConfig.cs",
+              "DocumentMoniker": "C:\\SlothV2\\Sloth.Core\\Models\\SlothConfig.cs",
+              "RelativeDocumentMoniker": "Sloth.Core\\Models\\SlothConfig.cs",
+              "ToolTip": "C:\\SlothV2\\Sloth.Core\\Models\\SlothConfig.cs",
+              "RelativeToolTip": "Sloth.Core\\Models\\SlothConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T06:00:42.709Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\SlothV2\\SlothApp\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "SlothApp\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\SlothV2\\SlothApp\\MainWindow.xaml.cs",
+              "RelativeToolTip": "SlothApp\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T05:49:22.895Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\SlothV2\\SlothApp\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "SlothApp\\MainWindow.xaml",
+              "ToolTip": "C:\\SlothV2\\SlothApp\\MainWindow.xaml",
+              "RelativeToolTip": "SlothApp\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-10-29T05:49:25.626Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "HelloService.cs",
+              "DocumentMoniker": "C:\\SlothV2\\Sloth.Core\\Services\\HelloService.cs",
+              "RelativeDocumentMoniker": "Sloth.Core\\Services\\HelloService.cs",
+              "ToolTip": "C:\\SlothV2\\Sloth.Core\\Services\\HelloService.cs",
+              "RelativeToolTip": "Sloth.Core\\Services\\HelloService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T05:49:01.444Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Customer.cs",
+              "DocumentMoniker": "C:\\SlothV2\\Sloth.Core\\Models\\Customer.cs",
+              "RelativeDocumentMoniker": "Sloth.Core\\Models\\Customer.cs",
+              "ToolTip": "C:\\SlothV2\\Sloth.Core\\Models\\Customer.cs",
+              "RelativeToolTip": "Sloth.Core\\Models\\Customer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T05:48:00.504Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Sloth.Core",
+              "DocumentMoniker": "C:\\SlothV2\\Sloth.Core\\Sloth.Core.csproj",
+              "RelativeDocumentMoniker": "Sloth.Core\\Sloth.Core.csproj",
+              "ToolTip": "C:\\SlothV2\\Sloth.Core\\Sloth.Core.csproj",
+              "RelativeToolTip": "Sloth.Core\\Sloth.Core.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-10-29T05:45:54.067Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "SlothApp",
+              "DocumentMoniker": "C:\\SlothV2\\SlothApp\\SlothApp.csproj",
+              "RelativeDocumentMoniker": "SlothApp\\SlothApp.csproj",
+              "ToolTip": "C:\\SlothV2\\SlothApp\\SlothApp.csproj",
+              "RelativeToolTip": "SlothApp\\SlothApp.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-10-29T05:44:16.376Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

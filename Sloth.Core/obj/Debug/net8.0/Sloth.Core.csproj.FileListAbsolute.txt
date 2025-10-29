@@ -1,0 +1,11 @@
+C:\SlothV2\Sloth.Core\bin\Debug\net8.0\Sloth.Core.deps.json
+C:\SlothV2\Sloth.Core\bin\Debug\net8.0\Sloth.Core.dll
+C:\SlothV2\Sloth.Core\bin\Debug\net8.0\Sloth.Core.pdb
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.AssemblyInfoInputs.cache
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.AssemblyInfo.cs
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.csproj.CoreCompileInputs.cache
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.dll
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\refint\Sloth.Core.dll
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\Sloth.Core.pdb
+C:\SlothV2\Sloth.Core\obj\Debug\net8.0\ref\Sloth.Core.dll
