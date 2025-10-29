@@ -18,6 +18,9 @@ public static class BatchMoveService
         var results = new List<MoveResult>();
         var byId = customers.ToDictionary(k => k.CustomerId, k => k, StringComparer.OrdinalIgnoreCase);
 
+        // Planner set for preview uniqueness simulation (LOCAL variable)
+        var plannedByDir = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var s in sources)
         {
             var r = new MoveResult
@@ -37,10 +40,10 @@ public static class BatchMoveService
 
                 r.CustomerName = cust.Name ?? "";
 
-                if (!cfg.DocumentSets.TryGetValue(cust.Category ?? "", out var docSet) || docSet is null)
-                    throw new InvalidOperationException($"No document set for category '{cust.Category}'.");
+               if (!cfg.DocumentSets.TryGetValue(cust.Category ?? "", out var docSet) || docSet is null)
+    throw new InvalidOperationException($"No document set for category '{cust.Category}'.");
 
-                var doc = docSet.FirstOrDefault(d => string.Equals(d.Code, s.DocCode, StringComparison.OrdinalIgnoreCase));
+var doc = docSet.FirstOrDefault(d => string.Equals(d.Code, s.DocCode, StringComparison.OrdinalIgnoreCase));
                 if (doc is null)
                     throw new InvalidOperationException($"DocCode '{s.DocCode}' not found in set for '{cust.Category}'.");
 
@@ -54,11 +57,12 @@ public static class BatchMoveService
 
                 var installFolderName = cfg.Dest.InstallDocsFolderName ?? "설치완료서류";
                 var destDir = Path.Combine(custRoot, installFolderName);
-                var destPath = Path.Combine(destDir, fileName);
-                r.DestPath = destPath;
 
                 if (!execute)
                 {
+                    // simulate uniqueness using in-memory plan + existing files on disk
+                    var plannedPath = EnsureUniquePlanned(destDir, fileName, plannedByDir);
+                    r.DestPath = plannedPath;
                     r.Executed = false;
                     r.Success = true;
                     r.Message = "Preview OK";
@@ -67,8 +71,8 @@ public static class BatchMoveService
                 }
 
                 Directory.CreateDirectory(destDir);
-
-                var finalPath = EnsureUnique(destPath);
+                var desiredPath = Path.Combine(destDir, fileName);
+                var finalPath = EnsureUnique(desiredPath);
                 File.Move(s.SourcePath, finalPath);
 
                 r.DestPath = finalPath;
@@ -106,5 +110,40 @@ public static class BatchMoveService
         } while (File.Exists(candidate));
 
         return candidate;
+    }
+
+    private static string EnsureUniquePlanned(
+        string destDir,
+        string fileName,
+        Dictionary<string, HashSet<string>> plannedByDir)
+    {
+        if (!plannedByDir.TryGetValue(destDir, out var used))
+        {
+            used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                if (Directory.Exists(destDir))
+                {
+                    foreach (var f in Directory.EnumerateFiles(destDir))
+                        used.Add(Path.GetFileName(f));
+                }
+            }
+            catch { /* ignore */ }
+            plannedByDir[destDir] = used;
+        }
+
+        var baseName = Path.GetFileNameWithoutExtension(fileName);
+        var ext = Path.GetExtension(fileName);
+        var candidate = fileName;
+        int i = 1;
+
+        while (used.Contains(candidate))
+        {
+            candidate = $"{baseName} ({i}){ext}";
+            i++;
+        }
+
+        used.Add(candidate);
+        return Path.Combine(destDir, candidate);
     }
 }
