@@ -3,8 +3,11 @@
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+		<!-- add this -->
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Sloth.Core\Sloth.Core.csproj" />
 	</ItemGroup>
