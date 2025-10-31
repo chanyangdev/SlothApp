@@ -1,61 +1,56 @@
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Sloth.Core.Models;
 
-namespace Sloth.Core.Services;
-
-public static class NamingService
+namespace Sloth.Core.Services
 {
-    // Generates something like: "03. 홍길동 현장점검표.pdf"
-    // Supports tokens in pattern: {order}, {order:00}, {name}, {customerId}, {corp}, {category}
-    public static string GenerateFileName(SlothConfig.DocItem doc, Customer c, string extension)
+    /// <summary>
+    /// Expands filename patterns with tokens for a given customer & doc order.
+    /// Supports:
+    ///  {order}, {order:00}, {no}, {no:000}, {name}, {customerId}, {idDigits}, {idDigits:000}
+    /// </summary>
+    public static class NamingService
     {
-        if (string.IsNullOrWhiteSpace(extension)) extension = ".pdf";
-        if (!extension.StartsWith(".")) extension = "." + extension;
+        private static string DigitsOnly(string? s) =>
+            string.IsNullOrEmpty(s) ? string.Empty : Regex.Replace(s, "[^0-9]", "");
 
-        string output = Regex.Replace(doc.Pattern, @"\{(?<key>\w+)(?::(?<fmt>[^}]+))?\}", m =>
+        private static string ReplaceIntToken(string input, string token, int value)
         {
-            var key = m.Groups["key"].Value.ToLowerInvariant();
-            var fmt = m.Groups["fmt"].Success ? m.Groups["fmt"].Value : null;
-
-            return key switch
+            // {token} or {token:format}
+            return Regex.Replace(input, $@"\{{{token}(?::([^}}]+))?\}}", m =>
             {
-                "order"      => fmt is null ? doc.Order.ToString() : doc.Order.ToString(fmt),
-                "name"       => c.Name ?? "",
-                "customerid" => c.CustomerId ?? "",
-                "corp"       => c.Corp ?? "",
-                "category"   => c.Category ?? "",
-                _            => m.Value // unknown token stays as-is
-            };
-        });
+                var fmt = m.Groups[1].Success ? m.Groups[1].Value : null;
+                return fmt is null ? value.ToString() : value.ToString(fmt);
+            });
+        }
 
-        // Clean/sanitize
-        output = output.Trim();
-        output = CollapseWhitespace(output);
-        output = RemoveInvalidFileNameChars(output);
-        output = TrimTrailingDotsAndSpaces(output);
+        private static string ReplaceStringToken(string input, string token, string value)
+        {
+            // {token} or {token:format} (format ignored for strings)
+            return Regex.Replace(input, $@"\{{{token}(?::[^}}]+)?\}}", value ?? string.Empty);
+        }
 
-        return output + extension;
-    }
+        /// <summary>Return the final base name (without extension) for a pattern.</summary>
+        public static string Apply(string pattern, Customer cust, int order)
+        {
+            var result = pattern;
 
-    private static string CollapseWhitespace(string s)
-    {
-        return Regex.Replace(s, @"\s{2,}", " ");
-    }
+            // integers
+            result = ReplaceIntToken(result, "order", order);
+            result = ReplaceIntToken(result, "no", cust.No);
 
-    private static string RemoveInvalidFileNameChars(string name)
-    {
-        var bad = Path.GetInvalidFileNameChars();
-        var sb = new StringBuilder(name.Length);
-        foreach (var ch in name)
-            sb.Append(bad.Contains(ch) ? '_' : ch);
-        return sb.ToString();
-    }
+            // strings
+            result = ReplaceStringToken(result, "name", cust.Name ?? "");
+            result = ReplaceStringToken(result, "customerId", cust.CustomerId ?? "");
 
-    private static string TrimTrailingDotsAndSpaces(string s)
-    {
-        return s.Trim().TrimEnd('.', ' ');
+            // digits-only of CustomerId with optional padding
+            var idDigits = DigitsOnly(cust.CustomerId);
+            result = Regex.Replace(result, @"\{idDigits(?::([^}]+))?\}", m =>
+            {
+                if (!m.Groups[1].Success) return idDigits;
+                return int.TryParse(idDigits, out var n) ? n.ToString(m.Groups[1].Value) : idDigits;
+            });
+
+            return result.Trim();
+        }
     }
 }
