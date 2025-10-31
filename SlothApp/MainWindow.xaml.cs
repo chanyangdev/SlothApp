@@ -1,72 +1,106 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.ComponentModel;                 // CancelEventArgs
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Windows;
-using Microsoft.Win32; // OpenFileDialog / SaveFileDialog
-using Sloth.Core.Models;
-using Sloth.Core.Services;
+using System.Windows.Controls;
+using Microsoft.Win32;                       // OpenFileDialog / SaveFileDialog
+using SlothApp.Services;                     // UserSettings
+using Sloth.Core.Models;                     // SlothConfig, Customer, MoveResult, SourceDoc
+using Sloth.Core.Services;                   // ConfigService, ExcelService, BatchMoveService
 
 namespace SlothApp
 {
     public partial class MainWindow : Window
     {
+        private readonly UserSettings _settings = UserSettings.Load();
         private SlothConfig? _cfg;
         private List<Customer> _customers = new();
-        private ObservableCollection<MoveResult> _results = new();
+        private readonly ObservableCollection<MoveResult> _results = new();
 
         public MainWindow()
         {
             InitializeComponent();
-            GridResults.DataContext = _results;
+
+            // hydrate saved paths
+            if (!string.IsNullOrWhiteSpace(_settings.ConfigPath)) TxtConfig.Text = _settings.ConfigPath;
+            if (!string.IsNullOrWhiteSpace(_settings.CustomersPath)) TxtExcel.Text = _settings.CustomersPath;
+            if (!string.IsNullOrWhiteSpace(_settings.DestRoot)) TxtDestRoot.Text = _settings.DestRoot;
+            if (!string.IsNullOrWhiteSpace(_settings.SourceDir)) TxtSrcDir.Text = _settings.SourceDir;
+            if (!string.IsNullOrWhiteSpace(_settings.LogPath)) TxtLogPath.Text = _settings.LogPath;
+
+            // default log path if empty
+            if (string.IsNullOrWhiteSpace(TxtLogPath.Text))
+            {
+                var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                TxtLogPath.Text = Path.Combine(desktop, $"SlothLog_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+            }
+
+            // bind grid
+            GridResults.ItemsSource = _results;
+
+            // persist on close
+            this.Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object? sender, CancelEventArgs e)
+        {
+            _settings.ConfigPath = TxtConfig.Text;
+            _settings.CustomersPath = TxtExcel.Text;
+            _settings.DestRoot = TxtDestRoot.Text;
+            _settings.SourceDir = TxtSrcDir.Text;
+            _settings.LogPath = TxtLogPath.Text;
+            _settings.Save();
         }
 
         // -------- Browsers ----------
         private void BrowseConfig_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
-                DefaultExt = ".json",
-                CheckFileExists = true
-            };
-
-
+            var dlg = new OpenFileDialog { Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*" };
             if (dlg.ShowDialog() == true)
+            {
                 TxtConfig.Text = dlg.FileName;
+                _settings.ConfigPath = dlg.FileName;
+                _settings.Save();
+            }
         }
 
         private void BrowseExcel_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog
             {
-                Filter = "Excel files (*.xlsx;*.xlsm;*.xls)|*.xlsx;*.xlsm;*.xls|All files (*.*)|*.*"
+                Filter = "Excel/CSV (*.xlsx;*.xlsm;*.xls;*.csv)|*.xlsx;*.xlsm;*.xls;*.csv|All files (*.*)|*.*"
             };
             if (dlg.ShowDialog() == true)
+            {
                 TxtExcel.Text = dlg.FileName;
+                _settings.CustomersPath = dlg.FileName;
+                _settings.Save();
+            }
         }
 
         private void BrowseDestRoot_Click(object sender, RoutedEventArgs e)
         {
-            // Use WinForms FolderBrowserDialog from WPF (fully qualified to avoid ambiguity)
-            using (var dlg = new System.Windows.Forms.FolderBrowserDialog())
+            // fully qualify to avoid namespace ambiguity
+            var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                dlg.Description = "Select destination ROOT folder (contains 주택/건물 or customer folders)";
-                dlg.ShowNewFolderButton = true;
-                if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    TxtDestRoot.Text = dlg.SelectedPath;
+                TxtDestRoot.Text = dlg.SelectedPath;
+                _settings.DestRoot = dlg.SelectedPath;
+                _settings.Save();
             }
         }
 
         private void BrowseSrcDir_Click(object sender, RoutedEventArgs e)
         {
-            using (var dlg = new System.Windows.Forms.FolderBrowserDialog())
+            var dlg = new System.Windows.Forms.FolderBrowserDialog();
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                dlg.Description = "Select folder containing the created files to move/rename";
-                dlg.ShowNewFolderButton = false;
-                if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    TxtSrcDir.Text = dlg.SelectedPath;
+                TxtSrcDir.Text = dlg.SelectedPath;
+                _settings.SourceDir = dlg.SelectedPath;
+                _settings.Save();
             }
         }
 
@@ -74,11 +108,15 @@ namespace SlothApp
         {
             var dlg = new SaveFileDialog
             {
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
-                FileName = "SlothLog.xlsx"
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx|All files (*.*)|*.*",
+                FileName = TxtLogPath.Text
             };
             if (dlg.ShowDialog() == true)
+            {
                 TxtLogPath.Text = dlg.FileName;
+                _settings.LogPath = dlg.FileName;
+                _settings.Save();
+            }
         }
 
         // -------- Loaders ----------
@@ -92,13 +130,13 @@ namespace SlothApp
                 _cfg = ConfigService.Load(TxtConfig.Text);
                 LblSets.Text = _cfg.DocumentSets.Count.ToString();
 
-                // If we already have a selected customer, populate doc codes now
                 PopulateDocCodesForSelectedCustomer();
                 System.Windows.MessageBox.Show("Config loaded.", "Sloth", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Failed to load config:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Failed to load config:\n{ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -121,7 +159,8 @@ namespace SlothApp
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Failed to load customers:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"Failed to load customers:\n{ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -140,22 +179,15 @@ namespace SlothApp
             }
         }
 
-        // Whenever user changes selected customer, refresh available DocCodes
-        private void CmbCustomer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        // refresh DocCodes when customer changes
+        private void CmbCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             PopulateDocCodesForSelectedCustomer();
         }
 
         // -------- Actions ----------
-        private void Preview_Click(object sender, RoutedEventArgs e)
-        {
-            RunCore(execute: false);
-        }
-
-        private void Run_Click(object sender, RoutedEventArgs e)
-        {
-            RunCore(execute: true);
-        }
+        private void Preview_Click(object sender, RoutedEventArgs e) => RunCore(execute: false);
+        private void Run_Click(object sender, RoutedEventArgs e) => RunCore(execute: true);
 
         private void RunCore(bool execute)
         {
@@ -163,7 +195,6 @@ namespace SlothApp
             {
                 if (_cfg is null) throw new InvalidOperationException("Load Config first.");
                 if (_customers.Count == 0) throw new InvalidOperationException("Load Customers first.");
-
                 if (CmbCustomer.SelectedItem is not Customer cust)
                     throw new InvalidOperationException("Select a customer.");
 
@@ -194,23 +225,22 @@ namespace SlothApp
                 var results = BatchMoveService.PreviewAndExecute(sources, _customers, _cfg, destRoot, execute);
                 foreach (var r in results) _results.Add(r);
 
-                // Optional log on run
+                // log on Run
                 if (execute && _results.Any() && !string.IsNullOrWhiteSpace(TxtLogPath.Text))
                 {
-                    try
-                    {
-                        ExcelServiceExtensions.WriteMoveLog(TxtLogPath.Text, _results);
-                    }
+                    try { ExcelServiceExtensions.WriteMoveLog(TxtLogPath.Text, _results); }
                     catch (Exception exLog)
                     {
-                        System.Windows.MessageBox.Show($"Moved, but failed to write log:\n{exLog.Message}", "Log", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        System.Windows.MessageBox.Show($"Moved, but failed to write log:\n{exLog.Message}", "Log",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
 
                 var ok = results.Count(x => x.Success);
                 var fail = results.Count - ok;
                 var mode = execute ? "Run" : "Preview";
-                System.Windows.MessageBox.Show($"{mode} complete.\nOK: {ok}  Fail: {fail}", "Sloth", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show($"{mode} complete.\nOK: {ok}  Fail: {fail}", "Sloth",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
