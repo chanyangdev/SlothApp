@@ -62,7 +62,7 @@ public static class BatchMoveService
                 var custRoot = MatchingService.FindCustomerRoot(destRoot, cust, cfg);
                 if (custRoot is null)
                     throw new InvalidOperationException($"Customer root folder not found for '{cust.Name}' under '{destRoot}'.");
-
+                r.MatchedRoot = custRoot; // <— add this
                 var installFolderName = cfg.DestSettings?.InstallDocsFolderName ?? "설치완료서류";
                 var destDir = Path.Combine(custRoot, installFolderName);
 
