@@ -3,19 +3,14 @@ using System.Text.Json.Serialization;
 
 namespace Sloth.Core.Models
 {
-    /// <summary>
-    /// Global configuration (document sets, matching rules, destination options, doc-code rules).
-    /// </summary>
     public sealed class SlothConfig
     {
         [JsonPropertyName("documentSets")]
         public Dictionary<string, List<DocItem>> DocumentSets { get; set; } = new();
 
-        // Keep JSON key "matching", but use a clear property name in code.
         [JsonPropertyName("matching")]
         public MatchingSettings MatchingSettings { get; set; } = new();
 
-        // Keep JSON key "dest"
         [JsonPropertyName("dest")]
         public DestSettings DestSettings { get; set; } = new();
 
@@ -33,6 +28,8 @@ namespace Sloth.Core.Models
         {
             [JsonPropertyName("folderNameFormats")] public List<string> FolderNameFormats { get; set; } = new();
             [JsonPropertyName("addressFallback")] public bool AddressFallback { get; set; } = true;
+            [JsonPropertyName("maxSearchDepth")] public int MaxSearchDepth { get; set; } = 1;
+
         }
 
         public sealed class DestSettings
