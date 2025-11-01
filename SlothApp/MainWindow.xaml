@@ -91,6 +91,57 @@
             <TextBlock x:Name="LblCustomers" FontWeight="Bold" Margin="6,0"/>
         </StackPanel>
 
+        <!-- Batch Worklist -->
+        <GroupBox Header="Batch Worklist" Grid.Row="1" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.ColumnSpan="3" Text="Select multiple Customers and Doc Codes, then Add to Queue." Margin="0,0,0,8" />
+
+                <!-- Customers -->
+                <GroupBox Header="Customers" Grid.Row="1" Grid.Column="0" Margin="0,0,8,0">
+                    <ListBox x:Name="LbCustomers" SelectionMode="Extended" DisplayMemberPath="Name" />
+                </GroupBox>
+
+                <!-- Doc Codes -->
+                <GroupBox Header="Doc Codes" Grid.Row="1" Grid.Column="1" Margin="0,0,8,0">
+                    <DockPanel>
+                        <CheckBox x:Name="ChkAutoDoc" Content="Use Auto (filename→docCode)" Margin="0,0,0,6"/>
+                        <ListBox x:Name="LbDocCodes" SelectionMode="Extended" />
+                    </DockPanel>
+                </GroupBox>
+
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right">
+                    <Button Content="Add →" Width="120" Margin="0,0,0,6" Click="AddToQueue_Click"/>
+                </StackPanel>
+
+                <!-- Queue -->
+                <DataGrid Grid.Row="3" Grid.ColumnSpan="3" x:Name="GridQueue" AutoGenerateColumns="False" CanUserAddRows="False" Height="160">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*" />
+                        <DataGridTextColumn Header="CustomerId" Binding="{Binding CustomerId}" Width="120" />
+                        <DataGridTextColumn Header="DocCode" Binding="{Binding DocCode}" Width="200" />
+                        <DataGridTextColumn Header="SourceDir" Binding="{Binding SourceDir}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,8">
+                    <Button Content="Remove Selected" Margin="0,0,8,0" Click="RemoveSelectedQueue_Click"/>
+                    <Button Content="Clear" Click="ClearQueue_Click"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
         <!-- Results -->
         <DataGrid Grid.Row="2" x:Name="GridResults" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding}">
             <DataGrid.Columns>
