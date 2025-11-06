@@ -2,104 +2,194 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Sloth.Core.Models;
 
 namespace Sloth.Core.Services;
 
 public static class MatchingService
 {
-    /// <summary>
-    /// Returns the customer's *root* folder (not the '설치완료서류' child).
-    /// Strategy:
-    ///   1) If Customer.FolderPath exists, use it.
-    ///   2) Try exact candidates from config.Matching.FolderNameFormats under:
-    ///        - destRoot
-    ///        - destRoot/{Category}
-    ///   3) Fallback: breadth-first search up to depth=3 for exact name matches.
-    ///   4) If AddressFallback=true, allow matches where path contains Name AND
-    ///      either RoadAddress or LotAddress (substring).
-    /// Returns null if not found.
-    /// </summary>
-    public static string? FindCustomerRoot(string destRoot, Customer c, SlothConfig cfg, int maxDepth = 3)
+    public static string? FindCustomerRoot(string destRoot, Customer cust, SlothConfig cfg)
     {
-        if (!Directory.Exists(destRoot))
+        if (!string.IsNullOrWhiteSpace(cust.FolderPath) && Directory.Exists(cust.FolderPath))
+            return cust.FolderPath;
+
+        if (string.IsNullOrWhiteSpace(destRoot) || !Directory.Exists(destRoot))
             return null;
 
-        // (1)
-        if (!string.IsNullOrWhiteSpace(c.FolderPath) && Directory.Exists(c.FolderPath))
-            return c.FolderPath;
+        var settings = cfg.MatchingSettings ?? new SlothConfig.MatchingSettings();
+        var formats = settings.FolderNameFormats ?? new List<string>();
+        var idDigits = Regex.Replace(cust.CustomerId ?? "", "[^0-9]", "");
+        var category = cust.Category ?? string.Empty;
+        var corp = cust.Corp ?? string.Empty;
 
-        var names = ExpandFormats(cfg.Matching.FolderNameFormats, c);
-        var candidates = new List<string>();
+        // Build candidate folder names from formats
+        // Allowed tokens: {name} {customerId} {idDigits} {no} {category} {corp}
+        var names = BuildNames(formats, cust, idDigits, category, corp).ToList();
 
-        // category may be "주택" or "건물" etc.
-        var catRoot = !string.IsNullOrWhiteSpace(c.Category) ? Path.Combine(destRoot, c.Category) : null;
+        // Where to try first: category folder then root
+        IEnumerable<string> roots = string.IsNullOrWhiteSpace(category)
+            ? new[] { destRoot }
+            : new[] { Path.Combine(destRoot, category), destRoot };
 
-        foreach (var n in names)
+        // 1) Exact path exists?
+        foreach (var r in roots)
         {
-            candidates.Add(Path.Combine(destRoot, n));
-            if (catRoot is not null) candidates.Add(Path.Combine(catRoot, n));
+            foreach (var n in names)
+            {
+                var candidate = Path.Combine(r, n);
+                if (Directory.Exists(candidate))
+                    return candidate;
+            }
         }
 
-        // (2) direct check
-        foreach (var p in candidates)
-            if (Directory.Exists(p)) return p;
-
-        // (3) BFS search up to depth
-        var exact = BfsDirs(destRoot, maxDepth)
-            .FirstOrDefault(d => names.Contains(Path.GetFileName(d), StringComparer.OrdinalIgnoreCase));
-        if (exact is not null) return exact;
-
-        // (4) address fallback
-        if (cfg.Matching.AddressFallback)
+        // 2) Fallback: shallow scan for exact folder-name equality, then Contains
+        if (settings.AddressFallback)
         {
-            var road = (c.RoadAddress ?? "").Trim();
-            var lot  = (c.LotAddress  ?? "").Trim();
-            foreach (var d in BfsDirs(destRoot, maxDepth))
+            foreach (var r in roots)
             {
-                var nameHit = d.IndexOf(c.Name ?? "", StringComparison.OrdinalIgnoreCase) >= 0;
-                var roadHit = !string.IsNullOrEmpty(road) && d.IndexOf(road, StringComparison.OrdinalIgnoreCase) >= 0;
-                var lotHit  = !string.IsNullOrEmpty(lot)  && d.IndexOf(lot,  StringComparison.OrdinalIgnoreCase) >= 0;
-                if (nameHit && (roadHit || lotHit)) return d;
+                var got = ScanLevel(r, names, exact: true);
+                if (got is not null) return got;
             }
+            foreach (var r in roots)
+            {
+                var got = ScanLevel(r, names, exact: false);
+                if (got is not null) return got;
+            }
+
+            // 3) Optional deeper scan up to maxSearchDepth
+            var depth = Math.Max(0, settings.MaxSearchDepth);
+            if (depth > 1)
+            {
+                foreach (var r in roots)
+                {
+                    var got = ScanDeep(r, names, depth);
+                    if (got is not null) return got;
+                }
+            }
+
+            // 4) Last-ditch: name-only contains in first level (robust for simple setups)
+            try
+            {
+                foreach (var r in roots)
+                {
+                    foreach (var d in Directory.EnumerateDirectories(r))
+                    {
+                        if (Path.GetFileName(d)
+                                .Contains(cust.Name ?? "", StringComparison.OrdinalIgnoreCase))
+                            return d;
+                    }
+                }
+            }
+            catch { /* ignore */ }
         }
 
         return null;
     }
 
-    private static IEnumerable<string> BfsDirs(string root, int maxDepth)
+    private static IEnumerable<string> BuildNames(
+        IEnumerable<string> formats, Customer c, string idDigits, string category, string corp)
     {
-        var q = new Queue<(string path, int depth)>();
-        q.Enqueue((root, 0));
-        while (q.Count > 0)
+        // If no formats configured, use a sensible default set
+        var fmts = (formats?.Any() == true)
+            ? formats!
+            : new[]
+              {
+                  "{name}",
+                  "{idDigits}-{name}",
+                  "{no}-{name}",
+                  "{corp}-{name}",
+              };
+
+        foreach (var fmt in fmts)
         {
-            var (p, d) = q.Dequeue();
-            if (d >= maxDepth) continue;
+            var name = fmt
+                .Replace("{name}", c.Name ?? "")
+                .Replace("{customerId}", c.CustomerId ?? "")
+                .Replace("{idDigits}", idDigits)
+                .Replace("{no}", c.No.ToString())
+                .Replace("{category}", category)
+                .Replace("{corp}", corp);
 
-            IEnumerable<string> subs = Array.Empty<string>();
-            try { subs = Directory.EnumerateDirectories(p); } catch { /* ignore */ }
-
-            foreach (var s in subs)
-            {
-                yield return s;
-                q.Enqueue((s, d + 1));
-            }
+            name = SanitizeSegment(name);
+            if (!string.IsNullOrWhiteSpace(name))
+                yield return name;
         }
     }
 
-    private static List<string> ExpandFormats(IEnumerable<string> formats, Customer c)
+    private static string SanitizeSegment(string s)
     {
-        var list = new List<string>();
-        foreach (var f in formats)
+        // Remove invalid file-name chars and collapse whitespace
+        var invalid = Path.GetInvalidFileNameChars();
+        foreach (var ch in invalid)
+            s = s.Replace(ch.ToString(), " ");
+
+        s = Regex.Replace(s, @"\s+", " ").Trim();
+        return s;
+    }
+
+    private static string? ScanLevel(string root, List<string> names, bool exact)
+    {
+        try
         {
-            if (string.IsNullOrWhiteSpace(f)) continue;
-            var n = f
-                .Replace("{name}", c.Name ?? "")
-                .Replace("{customerId}", c.CustomerId ?? "")
-                .Replace("{corp}", c.Corp ?? "")
-                .Replace("{category}", c.Category ?? "");
-            list.Add(n);
+            if (!Directory.Exists(root)) return null;
+            var dirs = Directory.EnumerateDirectories(root);
+
+            if (exact)
+            {
+                // Exact equals ignoring case
+                var set = new HashSet<string>(dirs.Select(Path.GetFileName), StringComparer.OrdinalIgnoreCase);
+                foreach (var n in names)
+                    if (set.Contains(n))
+                        return Path.Combine(root, n);
+            }
+            else
+            {
+                // Contains
+                foreach (var d in dirs)
+                {
+                    var leaf = Path.GetFileName(d) ?? "";
+                    if (names.Any(n => leaf.Contains(n, StringComparison.OrdinalIgnoreCase)))
+                        return d;
+                }
+            }
         }
-        return list;
+        catch { /* ignore permission issues */ }
+
+        return null;
+    }
+
+    private static string? ScanDeep(string root, List<string> names, int maxDepth)
+    {
+        try
+        {
+            if (!Directory.Exists(root)) return null;
+
+            var queue = new Queue<(string path, int depth)>();
+            queue.Enqueue((root, 0));
+
+            while (queue.Count > 0)
+            {
+                var (cur, d) = queue.Dequeue();
+                if (d >= maxDepth) continue;
+
+                IEnumerable<string> children;
+                try { children = Directory.EnumerateDirectories(cur); }
+                catch { continue; }
+
+                foreach (var c in children)
+                {
+                    var leaf = Path.GetFileName(c) ?? "";
+                    if (names.Any(n => leaf.Equals(n, StringComparison.OrdinalIgnoreCase) ||
+                                       leaf.Contains(n, StringComparison.OrdinalIgnoreCase)))
+                        return c;
+
+                    queue.Enqueue((c, d + 1));
+                }
+            }
+        }
+        catch { /* ignore */ }
+
+        return null;
     }
 }

@@ -16,9 +16,13 @@ public static class BatchMoveService
         bool execute)
     {
         var results = new List<MoveResult>();
-        var byId = customers.ToDictionary(k => k.CustomerId, k => k, StringComparer.OrdinalIgnoreCase);
 
-        // Planner set for preview uniqueness simulation (LOCAL variable)
+        // Build customer lookup (skip null/empty ids)
+        var byId = customers
+            .Where(c => !string.IsNullOrWhiteSpace(c.CustomerId))
+            .ToDictionary(k => k.CustomerId!, k => k, StringComparer.OrdinalIgnoreCase);
+
+        // Keep a planned-name set per directory to simulate uniqueness in Preview
         var plannedByDir = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var s in sources)
@@ -40,29 +44,33 @@ public static class BatchMoveService
 
                 r.CustomerName = cust.Name ?? "";
 
-               if (!cfg.DocumentSets.TryGetValue(cust.Category ?? "", out var docSet) || docSet is null)
-    throw new InvalidOperationException($"No document set for category '{cust.Category}'.");
+                if (!cfg.DocumentSets.TryGetValue(cust.Category ?? "", out var docSet) || docSet is null)
+                    throw new InvalidOperationException($"No document set for category '{cust.Category}'.");
 
-var doc = docSet.FirstOrDefault(d => string.Equals(d.Code, s.DocCode, StringComparison.OrdinalIgnoreCase));
+                var doc = docSet.FirstOrDefault(d =>
+                    string.Equals(d.Code, s.DocCode, StringComparison.OrdinalIgnoreCase));
                 if (doc is null)
                     throw new InvalidOperationException($"DocCode '{s.DocCode}' not found in set for '{cust.Category}'.");
 
                 var ext = Path.GetExtension(s.SourcePath);
-                var fileName = NamingService.GenerateFileName(doc, cust, ext);
+
+                // Build the target name ONCE
+                var baseName = NamingService.Apply(doc.Pattern, cust, doc.Order);
+                var fileName = baseName + ext;
                 r.FileName = fileName;
 
                 var custRoot = MatchingService.FindCustomerRoot(destRoot, cust, cfg);
                 if (custRoot is null)
                     throw new InvalidOperationException($"Customer root folder not found for '{cust.Name}' under '{destRoot}'.");
-
-                var installFolderName = cfg.Dest.InstallDocsFolderName ?? "설치완료서류";
+                r.MatchedRoot = custRoot; // <— add this
+                var installFolderName = cfg.DestSettings?.InstallDocsFolderName ?? "설치완료서류";
                 var destDir = Path.Combine(custRoot, installFolderName);
 
                 if (!execute)
                 {
-                    // simulate uniqueness using in-memory plan + existing files on disk
+                    // Preview mode: simulate unique naming without touching disk
                     var plannedPath = EnsureUniquePlanned(destDir, fileName, plannedByDir);
-                    r.DestPath = plannedPath;
+                    r.DestPath = plannedPath ?? string.Empty; // coalesce to silence nullable warnings
                     r.Executed = false;
                     r.Success = true;
                     r.Message = "Preview OK";
@@ -70,6 +78,7 @@ var doc = docSet.FirstOrDefault(d => string.Equals(d.Code, s.DocCode, StringComp
                     continue;
                 }
 
+                // Execute move
                 Directory.CreateDirectory(destDir);
                 var desiredPath = Path.Combine(destDir, fileName);
                 var finalPath = EnsureUnique(desiredPath);

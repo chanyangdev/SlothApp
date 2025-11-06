@@ -1,32 +1,46 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-namespace Sloth.Core.Services
+namespace Sloth.Core.Models
 {
-    /// <summary>
-    /// Holds document set definitions and matching/destination preferences.
-    /// </summary>
-    public class SlothConfig
+    public sealed class SlothConfig
     {
+        [JsonPropertyName("documentSets")]
         public Dictionary<string, List<DocItem>> DocumentSets { get; set; } = new();
-        public MatchingConfig Matching { get; set; } = new();
-        public DestConfig Dest { get; set; } = new();
 
-        public class DocItem
+        [JsonPropertyName("matching")]
+        public MatchingSettings MatchingSettings { get; set; } = new();
+
+        [JsonPropertyName("dest")]
+        public DestSettings DestSettings { get; set; } = new();
+
+        [JsonPropertyName("docCodeRules")]
+        public List<DocCodeRule>? DocCodeRules { get; set; }
+
+        public sealed class DocItem
         {
-            public int Order { get; set; }
-            public string Code { get; set; } = string.Empty;
-            public string Pattern { get; set; } = string.Empty;
+            [JsonPropertyName("order")] public int Order { get; set; }
+            [JsonPropertyName("code")] public string Code { get; set; } = string.Empty;
+            [JsonPropertyName("pattern")] public string Pattern { get; set; } = string.Empty;
         }
 
-        public class MatchingConfig
+        public sealed class MatchingSettings
         {
-            public List<string> FolderNameFormats { get; set; } = new();
-            public bool AddressFallback { get; set; } = true;
+            [JsonPropertyName("folderNameFormats")] public List<string> FolderNameFormats { get; set; } = new();
+            [JsonPropertyName("addressFallback")] public bool AddressFallback { get; set; } = true;
+            [JsonPropertyName("maxSearchDepth")] public int MaxSearchDepth { get; set; } = 1;
+
         }
 
-        public class DestConfig
+        public sealed class DestSettings
         {
-            public string InstallDocsFolderName { get; set; } = "설치완료서류";
+            [JsonPropertyName("installDocsFolderName")] public string InstallDocsFolderName { get; set; } = "설치완료서류";
+        }
+
+        public sealed class DocCodeRule
+        {
+            [JsonPropertyName("docCode")] public string DocCode { get; set; } = "";
+            [JsonPropertyName("keywords")] public List<string>? Keywords { get; set; }
         }
     }
 }
