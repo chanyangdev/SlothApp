@@ -75,8 +75,26 @@ public static class ExcelService
         int lastRow = used.RowCount();
         for (int r = 2; r <= lastRow; r++)
         {
-            // stop early if the key fields are empty
-            var id = ws.Cell(r, 2).GetString();
+            // ---- CustomerId (col 2) robust read ----
+            string id;
+            var cId = ws.Cell(r, 2);
+            var idStr = cId.GetString()?.Trim();
+
+            if (!string.IsNullOrEmpty(idStr))
+            {
+                id = idStr; // text cell
+            }
+            else if (cId.TryGetValue<double>(out var idNum))
+            {
+                // numeric cell -> integer-like string ("1", "327")
+                id = ((long)Math.Round(idNum)).ToString();
+            }
+            else
+            {
+                id = string.Empty;
+            }
+
+            // Name (col 3)
             var name = ws.Cell(r, 3).GetString();
             if (string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(name))
                 continue;
@@ -95,6 +113,7 @@ public static class ExcelService
         }
         return list;
     }
+
 
     private static List<Customer> ReadCustomersFromCsv(string csvPath)
     {
